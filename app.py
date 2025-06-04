@@ -5,19 +5,19 @@ import smtplib
 from email.mime.text import MIMEText
 from PIL import Image
 
-# --- Custom CSS for warm rich theme ---
+# --- Custom CSS for darker warm + deep blue colors ---
 st.markdown(
     """
     <style>
     /* Page background */
     .reportview-container {
-        background-color: #0d1b2a;  /* deep navy blue */
-        color: #f5f1e9;             /* soft cream */
+        background-color: #0b1a2b;
+        color: #f5e6c4;
     }
     /* Main title style */
     .main-title {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        color: #f0a500;            /* warm gold */
+        color: #d35400;  /* burnt orange */
         font-size: 42px;
         font-weight: 700;
         margin-bottom: 0;
@@ -25,11 +25,12 @@ st.markdown(
     /* Subheaders style */
     .stMarkdown h2 {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        color: #f08a5d;            /* warm orange */
+        color: #154360;  /* deep navy blue */
     }
-    /* Dataframe style (light text on dark background) */
+    /* Dataframe style */
     .dataframe, table {
-        color: #e0d8c3 !important;  /* light cream */
+        color: #f5e6c4 !important;
+        background-color: #112f4a !important;
     }
     /* Footer style */
     footer {
@@ -37,15 +38,15 @@ st.markdown(
     }
     .footer {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        color: #b07a39;             /* muted gold */
+        color: #b2a68d;
         font-size: 12px;
         padding: 10px 0;
         text-align: center;
-        border-top: 1px solid #1b263b; /* slightly lighter navy */
+        border-top: 1px solid #1e2d42;
         margin-top: 40px;
     }
     a, a:visited {
-        color: #f0a500 !important;  /* warm gold */
+        color: #d35400 !important;
         text-decoration: none !important;
     }
     a:hover {
@@ -55,8 +56,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-color_sequence = ['#f0a500', '#f08a5d', '#b07a39', '#e9c46a', '#e76f51']
 
 # --- Header and Logo Upload (optional) ---
 st.markdown('<h1 class="main-title">📊 Portfolio Report Generator</h1>', unsafe_allow_html=True)
@@ -122,13 +121,24 @@ if df is not None and not df.empty:
     st.dataframe(df)
 
     st.subheader("📈 Asset Allocation")
-    pie_fig = px.pie(df, names="Asset Name", values="Market Value", title="Allocation by Market Value",
-                     color_discrete_sequence=color_sequence)
+    pie_fig = px.pie(
+        df,
+        names="Asset Name",
+        values="Market Value",
+        title="Allocation by Market Value",
+        color_discrete_sequence=["#d35400", "#e67e22", "#154360", "#1abc9c", "#f39c12"]
+    )
     st.plotly_chart(pie_fig)
 
     st.subheader("📊 Performance (YTD Return)")
-    bar_fig = px.bar(df, x="Asset Name", y="Return (YTD)", color="Asset Type", title="YTD Return by Asset",
-                     color_discrete_sequence=color_sequence)
+    bar_fig = px.bar(
+        df,
+        x="Asset Name",
+        y="Return (YTD)",
+        color="Asset Type",
+        title="YTD Return by Asset",
+        color_discrete_sequence=["#d35400", "#e67e22", "#154360", "#1abc9c", "#f39c12"]
+    )
     st.plotly_chart(bar_fig)
 
     total_value = df["Market Value"].sum()
