@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import smtplib
+from email.mime.text import MIMEText
 
 st.title("📊 Portfolio Report Generator")
 
@@ -106,6 +108,40 @@ if df is not None and not df.empty:
         file_name=f"{client_name.lower().replace(' ', '_')}_portfolio_report.txt",
         mime="text/plain"
     )
+
+    # --- Email sending section ---
+    st.subheader("📧 Send Report by Email")
+
+    recipient_email = st.text_input("Recipient Email")
+    sender_email = st.text_input("Your Gmail Address")
+    sender_password = st.text_input("Your Gmail App Password", type="password")
+    send_button = st.button("Send Report")
+
+    def send_email_report(to_email, subject, body, from_email, from_password):
+        msg = MIMEText(body)
+        msg['Subject'] = subject
+        msg['From'] = from_email
+        msg['To'] = to_email
+
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(from_email, from_password)
+            server.sendmail(from_email, to_email, msg.as_string())
+
+    if send_button:
+        if recipient_email and sender_email and sender_password:
+            try:
+                send_email_report(
+                    to_email=recipient_email,
+                    subject=f"{firm_name} - Portfolio Report for {client_name}",
+                    body=report_text,
+                    from_email=sender_email,
+                    from_password=sender_password
+                )
+                st.success("Email sent successfully!")
+            except Exception as e:
+                st.error(f"Error sending email: {e}")
+        else:
+            st.error("Please fill in all email fields.")
 
 else:
     st.info("Please upload a CSV/Excel file or add at least one asset manually.")
