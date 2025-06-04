@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-st.title("Portfolio Report MVP")
+st.title("Portfolio Report MVP with Rule-Based Summary")
 
 uploaded_file = st.file_uploader("Upload your portfolio CSV", type=["csv"])
 if uploaded_file is not None:
@@ -11,9 +11,9 @@ if uploaded_file is not None:
     st.subheader("📋 Portfolio Data")
     st.dataframe(df)
 
-    # Make sure Market Value is numeric
+    # Convert columns to numeric where needed
     df["Market Value"] = pd.to_numeric(df["Market Value"], errors="coerce")
-    df["Return (YTD)"] = df["Return (YTD)"].str.replace('%','').astype(float)
+    df["Return (YTD)"] = df["Return (YTD)"].str.replace('%', '').astype(float)
 
     st.subheader("📈 Asset Allocation")
     pie_fig = px.pie(df, names="Asset Name", values="Market Value", title="Allocation by Market Value")
@@ -22,5 +22,23 @@ if uploaded_file is not None:
     st.subheader("📊 Performance (YTD Return)")
     bar_fig = px.bar(df, x="Asset Name", y="Return (YTD)", color="Asset Type", title="YTD Return by Asset")
     st.plotly_chart(bar_fig)
+
+    # Rule-based summary
+    total_value = df["Market Value"].sum()
+    weighted_return = (df["Market Value"] * df["Return (YTD)"]).sum() / total_value
+
+    best_asset = df.loc[df["Return (YTD)"].idxmax()]
+    worst_asset = df.loc[df["Return (YTD)"].idxmin()]
+
+    summary = (
+        f"Your portfolio's total market value is ${total_value:,.0f}.\n"
+        f"The weighted average return year-to-date is {weighted_return:.2f}%.\n"
+        f"The best performing asset is {best_asset['Asset Name']} with a return of {best_asset['Return (YTD)']:.2f}%.\n"
+        f"The worst performing asset is {worst_asset['Asset Name']} with a return of {worst_asset['Return (YTD)']:.2f}%.\n"
+    )
+
+    st.subheader("📄 Portfolio Summary")
+    st.text(summary)
+
 else:
     st.write("Please upload a CSV file to see your data.")
