@@ -42,3 +42,22 @@ if uploaded_file is not None:
 
 else:
     st.write("Please upload a CSV file to see your data.")
+ st.subheader("📄 Downloadable Report")
+
+    # Format a simple text report
+    report_text = f"Portfolio Summary\n------------------\n{summary}\n\nAssets:\n"
+    for i, row in df.iterrows():
+        report_text += (
+            f"- {row['Asset Name']}: "
+            f"Type: {row['Asset Type']}, "
+            f"Market Value: ${row['Market Value']:,.0f}, "
+            f"YTD Return: {row['Return (YTD)']:.2f}%\n"
+        )
+
+    # Download button
+    st.download_button(
+        label="📥 Download Report",
+        data=report_text,
+        file_name="portfolio_report.txt",
+        mime="text/plain"
+    )
