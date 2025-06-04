@@ -39,10 +39,8 @@ if uploaded_file is not None:
 
     st.subheader("📄 Portfolio Summary")
     st.text(summary)
-
-else:
-    st.write("Please upload a CSV file to see your data.")
- st.subheader("📄 Downloadable Report")
+    
+    st.subheader("📄 Downloadable Report")
 
     # Format a simple text report
     report_text = f"Portfolio Summary\n------------------\n{summary}\n\nAssets:\n"
@@ -61,3 +59,6 @@ else:
         file_name="portfolio_report.txt",
         mime="text/plain"
     )
+
+else:
+    st.write("Please upload a CSV file to see your data.")
