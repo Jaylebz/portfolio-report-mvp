@@ -56,7 +56,6 @@ st.download_button(
 
 import io
 
-# Create a sample DataFrame for the portfolio data (reuse your CSV sample)
 sample_data = {
     "Asset Name": ["Apple Inc", "Vanguard Total Bond Market", "Cash"],
     "Asset Type": ["Stock", "Bond", "Cash"],
@@ -65,14 +64,12 @@ sample_data = {
 }
 sample_df = pd.DataFrame(sample_data)
 
-# Create an in-memory Excel file
 output = io.BytesIO()
 with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
     sample_df.to_excel(writer, index=False, sheet_name='Portfolio')
-    writer.save()
+
 output.seek(0)
 
-# Add Excel download button
 st.download_button(
     label="Download Sample Excel Template",
     data=output,
