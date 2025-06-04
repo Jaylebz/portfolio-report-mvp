@@ -5,60 +5,26 @@ import smtplib
 from email.mime.text import MIMEText
 from PIL import Image
 
-# --- Custom CSS for blues and fonts ---
+# --- Header and Logo Upload (optional) ---
 st.markdown(
     """
     <style>
-    /* General font */
-    body, .main-title, .footer {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        color: #0B3D91; /* darkest blue for text */
-    }
-
-    /* Main title */
     .main-title {
-        color: #0B3D91;  /* Navy Blue */
-        font-weight: 700;
-        font-size: 2.5rem;
-        margin-bottom: 0.5rem;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #0B3D91;
     }
-
-    /* Buttons */
-    div.stButton > button {
-        background-color: #1E90FF; /* Dodger Blue */
-        color: white;
-        font-weight: 600;
-        border-radius: 6px;
-        border: none;
-    }
-    div.stButton > button:hover {
-        background-color: #104E8B; /* Darker Blue */
-        cursor: pointer;
-    }
-
-    /* Links */
-    a {
-        color: #4682B4; /* Steel Blue */
-        text-decoration: none;
-    }
-    a:hover {
-        color: #1E90FF; /* Dodger Blue */
-        text-decoration: underline;
-    }
-
-    /* Footer */
     .footer {
-        margin-top: 3rem;
-        font-size: 0.9rem;
-        color: #4169E1; /* Royal Blue */
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 0.8rem;
+        color: #104E8B;
+        margin-top: 40px;
         text-align: center;
     }
     </style>
     """,
-    unsafe_allow_html=True,
+    unsafe_allow_html=True
 )
 
-# --- Header and Logo Upload (optional) ---
 st.markdown('<h1 class="main-title">📊 Portfolio Report Generator</h1>', unsafe_allow_html=True)
 
 logo_file = st.file_uploader("Upload your Firm Logo (optional, PNG/JPG)", type=["png", "jpg", "jpeg"])
@@ -121,13 +87,16 @@ if df is not None and not df.empty:
     st.subheader("📋 Portfolio Data")
     st.dataframe(df)
 
+    # Blue shades for charts
+    blue_colors = ["#0B3D91", "#1E90FF", "#104E8B", "#4682B4", "#4169E1"]  # Navy, Dodger Blue, Dark Blue, Steel Blue, Royal Blue
+
     st.subheader("📈 Asset Allocation")
     pie_fig = px.pie(
         df,
         names="Asset Name",
         values="Market Value",
         title="Allocation by Market Value",
-        color_discrete_sequence=["#d35400", "#e67e22", "#154360", "#1abc9c", "#f39c12"]
+        color_discrete_sequence=blue_colors
     )
     st.plotly_chart(pie_fig)
 
@@ -138,7 +107,7 @@ if df is not None and not df.empty:
         y="Return (YTD)",
         color="Asset Type",
         title="YTD Return by Asset",
-        color_discrete_sequence=["#d35400", "#e67e22", "#154360", "#1abc9c", "#f39c12"]
+        color_discrete_sequence=blue_colors
     )
     st.plotly_chart(bar_fig)
 
