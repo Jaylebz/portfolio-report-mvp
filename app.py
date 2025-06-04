@@ -5,6 +5,59 @@ import smtplib
 from email.mime.text import MIMEText
 from PIL import Image
 
+# --- Custom CSS for blues and fonts ---
+st.markdown(
+    """
+    <style>
+    /* General font */
+    body, .main-title, .footer {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #0B3D91; /* darkest blue for text */
+    }
+
+    /* Main title */
+    .main-title {
+        color: #0B3D91;  /* Navy Blue */
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Buttons */
+    div.stButton > button {
+        background-color: #1E90FF; /* Dodger Blue */
+        color: white;
+        font-weight: 600;
+        border-radius: 6px;
+        border: none;
+    }
+    div.stButton > button:hover {
+        background-color: #104E8B; /* Darker Blue */
+        cursor: pointer;
+    }
+
+    /* Links */
+    a {
+        color: #4682B4; /* Steel Blue */
+        text-decoration: none;
+    }
+    a:hover {
+        color: #1E90FF; /* Dodger Blue */
+        text-decoration: underline;
+    }
+
+    /* Footer */
+    .footer {
+        margin-top: 3rem;
+        font-size: 0.9rem;
+        color: #4169E1; /* Royal Blue */
+        text-align: center;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 # --- Header and Logo Upload (optional) ---
 st.markdown('<h1 class="main-title">📊 Portfolio Report Generator</h1>', unsafe_allow_html=True)
 
