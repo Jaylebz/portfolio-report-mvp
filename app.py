@@ -2,24 +2,60 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-st.title("📊 Portfolio Report Generator (MVP)")
+st.title("📊 Portfolio Report Generator")
 
 # Firm and client info
 firm_name = st.text_input("Firm Name", value="Your Firm")
 client_name = st.text_input("Client Name", value="Client A")
 
-# File upload
-uploaded_file = st.file_uploader("Upload your portfolio CSV", type=["csv"])
+# Choose input method
+input_method = st.radio("How do you want to enter portfolio data?", ["Upload CSV/Excel", "Manual Entry"])
 
-if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
+# Initialize session asset list for manual entry
+if "assets" not in st.session_state:
+    st.session_state.assets = []
 
+df = None  # Will hold the final DataFrame
+
+# CSV or Excel Upload
+if input_method == "Upload CSV/Excel":
+    uploaded_file = st.file_uploader("Upload your portfolio CSV or Excel file", type=["csv", "xlsx"])
+    if uploaded_file is not None:
+        if uploaded_file.name.endswith(".csv"):
+            df = pd.read_csv(uploaded_file)
+        elif uploaded_file.name.endswith(".xlsx"):
+            df = pd.read_excel(uploaded_file)
+
+        # Clean & convert columns
+        df["Market Value"] = pd.to_numeric(df["Market Value"], errors="coerce")
+
+        if df["Return (YTD)"].dtype == object:
+            df["Return (YTD)"] = df["Return (YTD)"].str.replace('%', '').astype(float)
+
+# Manual Entry
+else:
+    with st.form("asset_form"):
+        asset_name = st.text_input("Asset Name")
+        asset_type = st.selectbox("Asset Type", ["Stock", "Bond", "ETF", "Mutual Fund", "Cash", "Other"])
+        market_value = st.number_input("Market Value ($)", min_value=0.0, step=100.0, format="%.2f")
+        ytd_return = st.number_input("YTD Return (%)", step=0.1, format="%.2f")
+        submitted = st.form_submit_button("Add Asset")
+
+        if submitted:
+            st.session_state.assets.append({
+                "Asset Name": asset_name,
+                "Asset Type": asset_type,
+                "Market Value": market_value,
+                "Return (YTD)": ytd_return
+            })
+
+    if st.session_state.assets:
+        df = pd.DataFrame(st.session_state.assets)
+
+# If data is ready, generate report
+if df is not None and not df.empty:
     st.subheader("📋 Portfolio Data")
     st.dataframe(df)
-
-    # Convert values
-    df["Market Value"] = pd.to_numeric(df["Market Value"], errors="coerce")
-    df["Return (YTD)"] = df["Return (YTD)"].str.replace('%', '').astype(float)
 
     st.subheader("📈 Asset Allocation")
     pie_fig = px.pie(df, names="Asset Name", values="Market Value", title="Allocation by Market Value")
@@ -29,7 +65,6 @@ if uploaded_file is not None:
     bar_fig = px.bar(df, x="Asset Name", y="Return (YTD)", color="Asset Type", title="YTD Return by Asset")
     st.plotly_chart(bar_fig)
 
-    # Rule-based summary
     total_value = df["Market Value"].sum()
     weighted_return = (df["Market Value"] * df["Return (YTD)"]).sum() / total_value
     best_asset = df.loc[df["Return (YTD)"].idxmax()]
@@ -73,4 +108,4 @@ if uploaded_file is not None:
     )
 
 else:
-    st.info("Please upload a CSV file to see your report.")
+    st.info("Please upload a CSV/Excel file or add at least one asset manually.")
