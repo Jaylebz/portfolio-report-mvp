@@ -5,58 +5,6 @@ import smtplib
 from email.mime.text import MIMEText
 from PIL import Image
 
-# --- Custom CSS for darker warm + deep blue colors ---
-st.markdown(
-    """
-    <style>
-    /* Page background */
-    .reportview-container {
-        background-color: #0b1a2b;
-        color: #f5e6c4;
-    }
-    /* Main title style */
-    .main-title {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        color: #d35400;  /* burnt orange */
-        font-size: 42px;
-        font-weight: 700;
-        margin-bottom: 0;
-    }
-    /* Subheaders style */
-    .stMarkdown h2 {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        color: #154360;  /* deep navy blue */
-    }
-    /* Dataframe style */
-    .dataframe, table {
-        color: #f5e6c4 !important;
-        background-color: #112f4a !important;
-    }
-    /* Footer style */
-    footer {
-        visibility: hidden;
-    }
-    .footer {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        color: #b2a68d;
-        font-size: 12px;
-        padding: 10px 0;
-        text-align: center;
-        border-top: 1px solid #1e2d42;
-        margin-top: 40px;
-    }
-    a, a:visited {
-        color: #d35400 !important;
-        text-decoration: none !important;
-    }
-    a:hover {
-        text-decoration: underline !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 # --- Header and Logo Upload (optional) ---
 st.markdown('<h1 class="main-title">📊 Portfolio Report Generator</h1>', unsafe_allow_html=True)
 
