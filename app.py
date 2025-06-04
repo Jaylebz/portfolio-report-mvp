@@ -4,27 +4,9 @@ import plotly.express as px
 import smtplib
 from email.mime.text import MIMEText
 from PIL import Image
+import io
 
 # --- Header and Logo Upload (optional) ---
-st.markdown(
-    """
-    <style>
-    .main-title {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        color: #0B3D91;
-    }
-    .footer {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        font-size: 0.8rem;
-        color: #104E8B;
-        margin-top: 40px;
-        text-align: center;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 st.markdown('<h1 class="main-title">📊 Portfolio Report Generator</h1>', unsafe_allow_html=True)
 
 logo_file = st.file_uploader("Upload your Firm Logo (optional, PNG/JPG)", type=["png", "jpg", "jpeg"])
@@ -48,19 +30,55 @@ if "assets" not in st.session_state:
 
 df = None
 
+# --- Sample CSV content and instructions ---
+st.markdown("""
+**Please upload a CSV or Excel file with these columns exactly:**  
+- Asset Name  
+- Asset Type  
+- Market Value  
+- Return (YTD)  
+
+You can download a sample file here and use it as a template.
+""")
+
+sample_csv = """Asset Name,Asset Type,Market Value,Return (YTD)
+Apple Inc,Stock,100000,12.5
+Vanguard Total Bond Market,Bond,50000,3.2
+Cash,Cash,20000,0
+"""
+
+st.download_button(
+    label="Download Sample CSV Template",
+    data=sample_csv,
+    file_name="sample_portfolio_template.csv",
+    mime="text/csv"
+)
+
 # --- CSV or Excel Upload ---
 if input_method == "Upload CSV/Excel":
     uploaded_file = st.file_uploader("Upload your portfolio CSV or Excel file", type=["csv", "xlsx"])
     if uploaded_file is not None:
-        if uploaded_file.name.endswith(".csv"):
-            df = pd.read_csv(uploaded_file)
-        elif uploaded_file.name.endswith(".xlsx"):
-            df = pd.read_excel(uploaded_file)
+        try:
+            if uploaded_file.name.endswith(".csv"):
+                df = pd.read_csv(uploaded_file)
+            elif uploaded_file.name.endswith(".xlsx"):
+                df = pd.read_excel(uploaded_file)
 
-        df["Market Value"] = pd.to_numeric(df["Market Value"], errors="coerce")
+            # Validate required columns
+            required_cols = {"Asset Name", "Asset Type", "Market Value", "Return (YTD)"}
+            if not required_cols.issubset(df.columns):
+                missing = required_cols - set(df.columns)
+                st.error(f"Uploaded file is missing required columns: {', '.join(missing)}. Please fix and re-upload.")
+                df = None
+            else:
+                # Process columns
+                df["Market Value"] = pd.to_numeric(df["Market Value"], errors="coerce")
+                if df["Return (YTD)"].dtype == object:
+                    df["Return (YTD)"] = df["Return (YTD)"].str.replace('%', '').astype(float)
 
-        if df["Return (YTD)"].dtype == object:
-            df["Return (YTD)"] = df["Return (YTD)"].str.replace('%', '').astype(float)
+        except Exception as e:
+            st.error(f"Error reading uploaded file: {e}")
+            df = None
 
 # --- Manual Entry ---
 else:
@@ -87,16 +105,13 @@ if df is not None and not df.empty:
     st.subheader("📋 Portfolio Data")
     st.dataframe(df)
 
-    # Blue shades for charts
-    blue_colors = ["#0B3D91", "#1E90FF", "#104E8B", "#4682B4", "#4169E1"]  # Navy, Dodger Blue, Dark Blue, Steel Blue, Royal Blue
-
     st.subheader("📈 Asset Allocation")
     pie_fig = px.pie(
         df,
         names="Asset Name",
         values="Market Value",
         title="Allocation by Market Value",
-        color_discrete_sequence=blue_colors
+        color_discrete_sequence=["#0D3B66", "#145374", "#1E6F9F", "#2A99D8", "#58C9F3"]
     )
     st.plotly_chart(pie_fig)
 
@@ -107,7 +122,7 @@ if df is not None and not df.empty:
         y="Return (YTD)",
         color="Asset Type",
         title="YTD Return by Asset",
-        color_discrete_sequence=blue_colors
+        color_discrete_sequence=["#0D3B66", "#145374", "#1E6F9F", "#2A99D8", "#58C9F3"]
     )
     st.plotly_chart(bar_fig)
 
