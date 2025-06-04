@@ -30,19 +30,81 @@ if "assets" not in st.session_state:
 
 df = None
 
+# --- Sample CSV content and instructions ---
+st.markdown("""
+**Please upload a CSV or Excel file with these columns exactly:**  
+- Asset Name  
+- Asset Type  
+- Market Value  
+- Return (YTD)  
+
+You can download a sample file here and use it as a template.
+""")
+
+sample_csv = """Asset Name,Asset Type,Market Value,Return (YTD)
+Apple Inc,Stock,100000,12.5
+Vanguard Total Bond Market,Bond,50000,3.2
+Cash,Cash,20000,0
+"""
+
+st.download_button(
+    label="Download Sample CSV Template",
+    data=sample_csv,
+    file_name="sample_portfolio_template.csv",
+    mime="text/csv"
+)
+
+import io
+
+# Create a sample DataFrame for the portfolio data (reuse your CSV sample)
+sample_data = {
+    "Asset Name": ["Apple Inc", "Vanguard Total Bond Market", "Cash"],
+    "Asset Type": ["Stock", "Bond", "Cash"],
+    "Market Value": [100000, 50000, 20000],
+    "Return (YTD)": [12.5, 3.2, 0]
+}
+sample_df = pd.DataFrame(sample_data)
+
+# Create an in-memory Excel file
+output = io.BytesIO()
+with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+    sample_df.to_excel(writer, index=False, sheet_name='Portfolio')
+    writer.save()
+output.seek(0)
+
+# Add Excel download button
+st.download_button(
+    label="Download Sample Excel Template",
+    data=output,
+    file_name="sample_portfolio_template.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
+
 # --- CSV or Excel Upload ---
 if input_method == "Upload CSV/Excel":
     uploaded_file = st.file_uploader("Upload your portfolio CSV or Excel file", type=["csv", "xlsx"])
     if uploaded_file is not None:
-        if uploaded_file.name.endswith(".csv"):
-            df = pd.read_csv(uploaded_file)
-        elif uploaded_file.name.endswith(".xlsx"):
-            df = pd.read_excel(uploaded_file)
+        try:
+            if uploaded_file.name.endswith(".csv"):
+                df = pd.read_csv(uploaded_file)
+            elif uploaded_file.name.endswith(".xlsx"):
+                df = pd.read_excel(uploaded_file)
 
-        df["Market Value"] = pd.to_numeric(df["Market Value"], errors="coerce")
+            # Validate required columns
+            required_cols = {"Asset Name", "Asset Type", "Market Value", "Return (YTD)"}
+            if not required_cols.issubset(df.columns):
+                missing = required_cols - set(df.columns)
+                st.error(f"Uploaded file is missing required columns: {', '.join(missing)}. Please fix and re-upload.")
+                df = None
+            else:
+                # Process columns
+                df["Market Value"] = pd.to_numeric(df["Market Value"], errors="coerce")
+                if df["Return (YTD)"].dtype == object:
+                    df["Return (YTD)"] = df["Return (YTD)"].str.replace('%', '').astype(float)
 
-        if df["Return (YTD)"].dtype == object:
-            df["Return (YTD)"] = df["Return (YTD)"].str.replace('%', '').astype(float)
+        except Exception as e:
+            st.error(f"Error reading uploaded file: {e}")
+            df = None
 
 # --- Manual Entry ---
 else:
@@ -75,7 +137,7 @@ if df is not None and not df.empty:
         names="Asset Name",
         values="Market Value",
         title="Allocation by Market Value",
-        color_discrete_sequence=["#002f6c", "#00509e", "#0074cc", "#3399ff", "#66b3ff"]
+        color_discrete_sequence=["#0D3B66", "#145374", "#1E6F9F", "#2A99D8", "#58C9F3"]
     )
     st.plotly_chart(pie_fig)
 
@@ -86,7 +148,7 @@ if df is not None and not df.empty:
         y="Return (YTD)",
         color="Asset Type",
         title="YTD Return by Asset",
-        color_discrete_sequence=["#002f6c", "#00509e", "#0074cc", "#3399ff", "#66b3ff"]
+        color_discrete_sequence=["#0D3B66", "#145374", "#1E6F9F", "#2A99D8", "#58C9F3"]
     )
     st.plotly_chart(bar_fig)
 
@@ -129,46 +191,10 @@ if df is not None and not df.empty:
 
     st.subheader("📄 Downloadable Report")
     st.download_button(
-        label="📥 Download Report (TXT)",
+        label="📥 Download Report",
         data=report_text,
         file_name=f"{client_name.lower().replace(' ', '_')}_portfolio_report.txt",
         mime="text/plain"
-    )
-
-    # --- Sample CSV download ---
-    sample_csv = (
-        "Asset Name,Asset Type,Market Value,Return (YTD)\n"
-        "Apple Inc,Stock,100000,12.5\n"
-        "Vanguard Total Bond Market,Bond,50000,3.2\n"
-        "Cash,Cash,20000,0\n"
-    )
-    st.download_button(
-        label="Download Sample CSV Template",
-        data=sample_csv,
-        file_name="sample_portfolio_template.csv",
-        mime="text/csv"
-    )
-
-    # --- Sample Excel download ---
-    sample_data = {
-        "Asset Name": ["Apple Inc", "Vanguard Total Bond Market", "Cash"],
-        "Asset Type": ["Stock", "Bond", "Cash"],
-        "Market Value": [100000, 50000, 20000],
-        "Return (YTD)": [12.5, 3.2, 0]
-    }
-    sample_df = pd.DataFrame(sample_data)
-
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        sample_df.to_excel(writer, index=False, sheet_name='Portfolio')
-        writer.save()
-    output.seek(0)
-
-    st.download_button(
-        label="Download Sample Excel Template",
-        data=output,
-        file_name="sample_portfolio_template.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
     # --- Email sending section ---
