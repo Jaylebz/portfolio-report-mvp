@@ -2,16 +2,22 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-st.title("Portfolio Report MVP with Rule-Based Summary")
+st.title("📊 Portfolio Report Generator (MVP)")
 
+# Firm and client info
+firm_name = st.text_input("Firm Name", value="Your Firm")
+client_name = st.text_input("Client Name", value="Client A")
+
+# File upload
 uploaded_file = st.file_uploader("Upload your portfolio CSV", type=["csv"])
+
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
     st.subheader("📋 Portfolio Data")
     st.dataframe(df)
 
-    # Convert columns to numeric where needed
+    # Convert values
     df["Market Value"] = pd.to_numeric(df["Market Value"], errors="coerce")
     df["Return (YTD)"] = df["Return (YTD)"].str.replace('%', '').astype(float)
 
@@ -26,24 +32,31 @@ if uploaded_file is not None:
     # Rule-based summary
     total_value = df["Market Value"].sum()
     weighted_return = (df["Market Value"] * df["Return (YTD)"]).sum() / total_value
-
     best_asset = df.loc[df["Return (YTD)"].idxmax()]
     worst_asset = df.loc[df["Return (YTD)"].idxmin()]
 
     summary = (
         f"Your portfolio's total market value is ${total_value:,.0f}.\n"
         f"The weighted average return year-to-date is {weighted_return:.2f}%.\n"
-        f"The best performing asset is {best_asset['Asset Name']} with a return of {best_asset['Return (YTD)']:.2f}%.\n"
-        f"The worst performing asset is {worst_asset['Asset Name']} with a return of {worst_asset['Return (YTD)']:.2f}%.\n"
+        f"The best performing asset is {best_asset['Asset Name']} "
+        f"with a return of {best_asset['Return (YTD)']:.2f}%.\n"
+        f"The worst performing asset is {worst_asset['Asset Name']} "
+        f"with a return of {worst_asset['Return (YTD)']:.2f}%."
     )
 
     st.subheader("📄 Portfolio Summary")
     st.text(summary)
-    
+
+    # Downloadable report
     st.subheader("📄 Downloadable Report")
 
-    # Format a simple text report
-    report_text = f"Portfolio Summary\n------------------\n{summary}\n\nAssets:\n"
+    report_text = (
+        f"{firm_name} - Client Report\n"
+        f"Client: {client_name}\n"
+        f"{'-'*30}\n\n"
+        f"Portfolio Summary\n------------------\n{summary}\n\nAssets:\n"
+    )
+
     for i, row in df.iterrows():
         report_text += (
             f"- {row['Asset Name']}: "
@@ -52,13 +65,12 @@ if uploaded_file is not None:
             f"YTD Return: {row['Return (YTD)']:.2f}%\n"
         )
 
-    # Download button
     st.download_button(
         label="📥 Download Report",
         data=report_text,
-        file_name="portfolio_report.txt",
+        file_name=f"{client_name.lower().replace(' ', '_')}_portfolio_report.txt",
         mime="text/plain"
     )
 
 else:
-    st.write("Please upload a CSV file to see your data.")
+    st.info("Please upload a CSV file to see your report.")
